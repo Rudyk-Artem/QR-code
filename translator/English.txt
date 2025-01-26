@@ -1,0 +1,33 @@
+QR code generator
+QR code version:
+Data recovery level:
+L (7%)
+M (14%)
+Q (25%)
+H (30%)
+Encoded data type:
+Numerical
+Alphabetical
+Byte
+Kanji
+Generate
+Open
+Copy
+Exit
+Information
+Interface language:
+Hotkeys
+File
+Settings
+Error
+Could not open file
+Useful notes
+1) restart the program for the settings to work
+2) if you enter "/open {PATH TO FILE}" you can open the file
+Too much data for QR code format, maximum for this data type and correction level 
+ characters
+Warning
+The entered data is not suitable for this mode. Change the mode to Byte?
+The program does not know how to work with kanji
+You have not entered data for QR code generation
+

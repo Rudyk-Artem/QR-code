@@ -1,0 +1,33 @@
+Generador de QR code
+Version del QRcode:
+Nivel de recuperacion de datos:
+L (7%)
+M (14%)
+Q (25%)
+H (30%)
+Tipo de datos codificados:
+Numerico
+Alfabetico
+Byte
+kanji
+Generar
+Abierto
+Copiar
+Salir
+Informacion
+Idioma de la interfaz:
+Teclas de acceso rapido
+Archivo
+Ajustes
+Error
+No se pudo abrir el archivo
+Notas utiles
+1) para que la configuracion funcione, reinicie el programa
+2) si ingresa "/open {RUTA AL ARCHIVO}" puede abrir el archivo
+Hay demasiados datos para el formato de codigo QR, para este tipo de datos y el nivel maximo de correccion 
+ simbolos
+Advertencia
+Los datos ingresados ??no son adecuados para este modo. ?Cambiar modo a Byte?
+El programa no sabe trabajar con kanji
+No has introducido datos para generar un QR code
+

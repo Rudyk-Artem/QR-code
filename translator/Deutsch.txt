@@ -1,0 +1,33 @@
+QR-Code-Generator
+QR-Code-Version:
+Datenwiederherstellungsstufe:
+L (7%)
+M (14%)
+Q (25%)
+H (30%)
+Verschlusselter Datentyp:
+Numerisch
+Alphabetisch
+Byte
+Kanji
+Erzeugen
+Offen
+Zu kopieren
+Hinausgehen
+Information
+Schnittstellensprache:
+Hotkeys
+Datei
+Einstellungen
+Fehler
+Datei konnte nicht geoffnet werden
+Nutzliche Hinweise
+1) Damit die Einstellungen funktionieren, starten Sie das Programm neu
+2) Wenn Sie „/open {PATH TO FILE}“ eingeben, konnen Sie die Datei offnen
+Es sind zu viele Daten fur das QR-Code-Format, fur diesen Datentyp und die maximale Korrekturstufe vorhanden 
+ Symbole
+Warnung
+Die eingegebenen Daten sind fur diesen Modus nicht geeignet. Modus auf Byte andern?
+Das Programm kann nicht mit Kanji arbeiten
+Sie haben keine Daten eingegeben, um einen QR-Code zu generieren
+
