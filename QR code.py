@@ -126,7 +126,7 @@ r6=Radiobutton(My_window,text=translationtext[9],fg="#000000",bg="#EEEEEE",font=
 r6.place(x=360,y=155)
 r7=Radiobutton(My_window,text=translationtext[10],fg="#000000",bg="#EEEEEE",font=("Arial",12),variable=typedata,value=3)
 r7.place(x=490,y=155)
-r8=Radiobutton(My_window,text=translationtext[11],fg="#666666",bg="#EEEEEE",font=("Arial",12),variable=typedata,value=4)
+r8=Radiobutton(My_window,text=translationtext[11],fg="#000000",bg="#EEEEEE",font=("Arial",12),variable=typedata,value=4)
 r8.place(x=620,y=155)
 c1=Canvas(My_window,width=geom[0]-10,height=geom[0]-10,bg='#FFFFFF')
 c1.place(x=3,y=185)
@@ -317,7 +317,7 @@ def CorrectData(td):
                 an=messagebox.askyesno(title=translationtext[28],message=translationtext[29])
                 if(an):
                     typedata.set(3)
-                    data=bytes(data,'utf-8')
+                    data=bytes(t1.get(0.1,END),'utf-8')
                     return 1
                 return 0
         return 1
@@ -329,11 +329,10 @@ def CorrectData(td):
                     ok=1
                     break
             if(ok==0):
-                print(data[i],TANV[j],data[i]==TANV[j])
                 an=messagebox.askyesno(title=translationtext[28],message=translationtext[29])
                 if(an):
                     typedata.set(3)
-                    data=bytes(data,'utf-8')
+                    data=bytes(t1.get(0.1,END),'utf-8')
                     return 1
                 return 0
         return 1
@@ -342,8 +341,25 @@ def CorrectData(td):
             data=bytes(data,'utf-8')
         return 1
     if(td==4):
-        messagebox.showinfo(title=translationtext[28],message=translationtext[30])
-        return 0
+        def bytesToInt(b):
+            n=0
+            for i in range(len(b)):
+                n=n+b[-i-1]*256**i
+            return n
+        for i in range(len(data)):
+            ok=0
+            b=bytesToInt(bytes(data[i],'Shift JIS'))
+#             print(bytes(data[i],'Shift JIS'),b)
+            if((33088<b and b<40956) or (57408<b and b<60351)):
+                ok=1
+            if(ok==0):
+                an=messagebox.askyesno(title=translationtext[28],message=translationtext[29])
+                if(an):
+                    typedata.set(3)
+                    data=bytes(data,'utf-8')
+                    return 1
+                return 0
+        return 1
 def FindMinSizeQRCode():
     global data,CCVMEC
     V=s1.get()
@@ -396,6 +412,24 @@ def DataEncoding():
         for i in range(len(data)):
             b=bin(int(data[i]))[2:]
             bitdata=bitdata+'0'*(8-len(b))+b
+    elif(typedata.get()==4):
+        def bytesToInt(b):
+            n=0
+            for i in range(len(b)):
+                n=n+b[-i-1]*256**i
+            return n
+        for i in range(len(data)):
+            b=bytesToInt(bytes(data[i],'Shift JIS'))
+            if(33088<b and b<40956):
+                b=b-33088
+                mb,lb=b//256,b%256
+                b=bin(mb*192+lb)[2:]
+                bitdata=bitdata+'0'*(13-len(b))+b
+            elif(57408<b and b<60351):
+                b=b-49472
+                mb,lb=b//256,b%256
+                b=bin(mb*192+lb)[2:]
+                bitdata=bitdata+'0'*(13-len(b))+b
     if(len(bitdata)+4>nbits):
         bitdata=bitdata+'0'*(nbits-len(bitdata))
     else:
@@ -408,17 +442,45 @@ def DataEncoding():
     print(bitdata,type(bitdata),len(bitdata))
 
 
-def ErrorCorrectionCoding(ndata):
-    BitCorrection=[]
-    
-    return BitCorrection
+def ErrorCorrectionCoding(ndata,ncor):
+    BytesCorrection=[0]*ncor
+    #складний алгоритм що повертає байти корекції
+    return BytesCorrection
 
-def ErrorCorrectionQRCode():
-    global bitdata,ECCWBI
-    
+def StructureFinalMessage():
+    global bitdata,ECCWBI,LVRRB
+    V,cor,ndata,codewords,ib=s1.get()-1,correction.get()-1,[],[],0
+    for i in range(ECCWBI[V][cor][2]):
+        ndata.append([])
+        for j in range(ECCWBI[V][cor][3]):
+            ndata[i].append(int(bitdata[ib*8:ib*8+8],2))
+            ib=ib+1
+    for i in range(ECCWBI[V][cor][4]):
+        ndata.append([])
+        for j in range(ECCWBI[V][cor][5]):
+            ndata[-1].append(int(bitdata[ib*8:ib*8+8],2))
+            ib=ib+1
+    for i in range(len(ndata)):
+        codewords.append(ErrorCorrectionCoding(ndata[i],ECCWBI[V][cor][1]))
+    bitdata=""
+    for i in range(len(ndata[-1])):
+        for j in range(len(ndata)):
+            try:
+                b=bin(ndata[j][i])[2:]
+                bitdata=bitdata+'0'*(8-len(b))+b
+            except IndexError:
+                pass
+    for i in range(len(codewords[0])):
+        for j in range(len(codewords)):
+            b=bin(codewords[j][i])[2:]
+            bitdata=bitdata+'0'*(8-len(b))+b
     print("Bits corection to QRCode")
+    bitdata=bitdata+"0"*LVRRB[s1.get()-1]
 
 
+def RemainderBits():
+    global bitdata,LVRRB
+    bitdata=bitdata+"0"*LVRRB[s1.get()-1]
 def CreateQRCode():
     QRCode=[[]]
     S=17+s1.get()*4
@@ -489,7 +551,7 @@ def BitsInQRCode(QRCode):
         if(cursor[1]==6):
             cursor[1]=cursor[1]-1
     return QRCode
-def VersionInformation(QRCode):
+def QRCodeVersionInformation(QRCode):
     global VItemplate,AVIS
     V=s1.get()
     for i in range(len(VItemplate)):
@@ -501,7 +563,7 @@ def Copy2DList(OldList2D):
     for i in range(len(OldList2D)):
         List2D.append(OldList2D[i].copy())
     return List2D
-def MaskingQRCode(QRCode,DoNotMask,mask):
+def DataMasking(QRCode,DoNotMask,mask):
     global FStemplate1,FStemplate2,LFIS
     for i in range(len(LFIS[0][0])):
         QRCode[FStemplate1[i][0]][FStemplate1[i][1]]=int(LFIS[correction.get()-1][mask][i])
@@ -614,13 +676,13 @@ def QRCodePenalty(QRCode):
         SumQRCode=SumQRCode+sum(QRCode[i])
     Penalty=Penalty+min(int(abs((((SumQRCode*100)/SizeQRCode)//5)-10)),int(abs((((SumQRCode*100)/SizeQRCode)//5+1)-10)))*10
     return Penalty
-def DataMasking(QRCode):
+def MaskingQRCode(QRCode):
     PenaltyMasking=[0]*8
     DoNotMask=QRCodeTemplate(CreateQRCode(),(1,1,1))
     for i in range(len(PenaltyMasking)):
-        PenaltyMasking[i]=QRCodePenalty(MaskingQRCode(Copy2DList(QRCode),DoNotMask,i))
+        PenaltyMasking[i]=QRCodePenalty(DataMasking(Copy2DList(QRCode),DoNotMask,i))
     print(PenaltyMasking,min(PenaltyMasking),PenaltyMasking.index(min(PenaltyMasking)))
-    QRCode=MaskingQRCode(QRCode,DoNotMask,PenaltyMasking.index(min(PenaltyMasking)))
+    QRCode=DataMasking(QRCode,DoNotMask,PenaltyMasking.index(min(PenaltyMasking)))
     return QRCode
 def DrawQRCode(QRCode):
     c1.delete("all")
@@ -631,10 +693,6 @@ def DrawQRCode(QRCode):
         for j in range(len(QRCode[0])):
             if(QRCode[i][j]):
                 c1.create_rectangle(j*MQRCode+offset,i*MQRCode+offset,j*MQRCode+offset+MQRCode-1,i*MQRCode+offset+MQRCode-1,fill='#000',outline='#000')
-            if(QRCode[i][j]==2):
-                c1.create_rectangle(j*MQRCode+offset,i*MQRCode+offset,j*MQRCode+offset+MQRCode-1,i*MQRCode+offset+MQRCode-1,fill='#DDD',outline='#DDD')
-            if(QRCode[i][j]==3):
-                c1.create_rectangle(j*MQRCode+offset,i*MQRCode+offset,j*MQRCode+offset+MQRCode-1,i*MQRCode+offset+MQRCode-1,fill='#444',outline='#444')
 def SaveQRCode(QRCode):
     QuietZone=4
     image=Image.new('1',(len(QRCode)+QuietZone*2,len(QRCode)+QuietZone*2),'#FFF')
@@ -672,19 +730,19 @@ def QRCodeGenerator():
             if(data[0]=="/"):
                 CommandProcessing()
         except IndexError:
-            messagebox.showinfo(title=translationtext[28],message=translationtext[31])
+            messagebox.showinfo(title=translationtext[28],message=translationtext[30])
     if(not CorrectData(typedata.get())):
         return
     FindMinSizeQRCode()
-    DataEncoding() #доопрацювати канджі режим
-    ErrorCorrectionQRCode() #потребує реалізації алгоритма виправлення помилок Ріда-Соломона. Поки не розібрався зі складною математикою
+    DataEncoding()
+    StructureFinalMessage() #потребує реалізації алгоритма виправлення помилок Ріда-Соломона. Поки не розібрався зі складною математикою
     QRCode=CreateQRCode()
     QRCode=QRCodeTemplate(QRCode,(1,1,1))
     QRCode=BitsInQRCode(QRCode)
     QRCode=QRCodeTemplate(QRCode,(1,0,0))
     if(s1.get()>=7):
-        QRCode=VersionInformation(QRCode)
-    QRCode=DataMasking(QRCode)
+        QRCode=QRCodeVersionInformation(QRCode)
+    QRCode=MaskingQRCode(QRCode)
     print(type(data),len(data),data)
     print(type(bitdata),len(bitdata),bitdata)
     print(QRCode)
@@ -701,32 +759,12 @@ def MenuSettings():
     filemenu.add_separator()
     filemenu.add_command(label=translationtext[15],accelerator="Alt+F4",image=icon[-1],compound='left',command=quit)
     settings_menu=Menu(tearoff=0)
-    # for i in range(len(translation[1])):
-    #     settings_menu.add_command(label=translation[1][i],command=lambda: settings('Language:\n',translation[1][i]))
-    #не можу зрозуміти чому замість різних значень при натиснені на різні кнопки у мене одне і теж значення (завжди останнє з списку)
-    try:
-        settings_menu.add_command(label=translation[1][0],command=lambda: settings('Language:\n',translation[1][0]))
-        settings_menu.add_command(label=translation[1][1],command=lambda: settings('Language:\n',translation[1][1]))
-        settings_menu.add_command(label=translation[1][2],command=lambda: settings('Language:\n',translation[1][2]))
-        settings_menu.add_command(label=translation[1][3],command=lambda: settings('Language:\n',translation[1][3]))
-        settings_menu.add_command(label=translation[1][4],command=lambda: settings('Language:\n',translation[1][4]))
-        settings_menu.add_command(label=translation[1][5],command=lambda: settings('Language:\n',translation[1][5]))
-        settings_menu.add_command(label=translation[1][6],command=lambda: settings('Language:\n',translation[1][6]))
-        settings_menu.add_command(label=translation[1][7],command=lambda: settings('Language:\n',translation[1][7]))
-        settings_menu.add_command(label=translation[1][8],command=lambda: settings('Language:\n',translation[1][8]))
-        settings_menu.add_command(label=translation[1][9],command=lambda: settings('Language:\n',translation[1][9]))
-        settings_menu.add_command(label=translation[1][10],command=lambda: settings('Language:\n',translation[1][10]))
-        settings_menu.add_command(label=translation[1][11],command=lambda: settings('Language:\n',translation[1][11]))
-        settings_menu.add_command(label=translation[1][12],command=lambda: settings('Language:\n',translation[1][12]))
-        settings_menu.add_command(label=translation[1][13],command=lambda: settings('Language:\n',translation[1][13]))
-        settings_menu.add_command(label=translation[1][14],command=lambda: settings('Language:\n',translation[1][14]))
-        settings_menu.add_command(label=translation[1][15],command=lambda: settings('Language:\n',translation[1][15]))
-    except IndexError:
-        pass
+    for i in range(len(translation[1])):
+        settings_menu.add_command(label=translation[1][i],command=lambda t='Language:\n',s=translation[1][i]: settings(t,s))
     settingsmenu=Menu(mainmenu, tearoff=0)
     settingsmenu.add_command(label=translationtext[16],image=icon[4],compound='left',command=info)
     settingsmenu.add_separator()
-    settingsmenu.add_cascade(label=translationtext[17],image=icon[-1],compound='left',menu=settings_menu)
+    settingsmenu.add_cascade(label=translationtext[17],image=icon[5],compound='left',menu=settings_menu)
     settingsmenu.add_checkbutton(label=translationtext[18],accelerator=translation[2],onvalue=1,offvalue=0,variable=onoffhotkey,command=lambda: settings('Hotkey:\n'))
     mainmenu.add_cascade(label=translationtext[19],menu=filemenu)
     mainmenu.add_cascade(label=translationtext[20], menu=settingsmenu)

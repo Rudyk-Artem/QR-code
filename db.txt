@@ -1,10 +1,12 @@
 Language:
-Українська
+English
+
 Languages:
 Українська;
 English;
 Espanol;
 Deutsch;
 .
+
 Hotkey:
-off
+on
