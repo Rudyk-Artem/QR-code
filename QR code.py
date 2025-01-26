@@ -305,36 +305,26 @@ def settings(t,s=0):
     with open('db.txt','w') as file:
         file.write(infostr)
     return s
-def CorrectData(td):
+def CorrectData():
     global data,TNV,TANV
+    td=typedata.get()
     if(td==1):
-        for i in range(len(data)):
-            ok=0
-            for j in range(len(TNV)):
-                if(data[i]==TNV[j]):
-                    ok=1
-            if(ok==0):
-                an=messagebox.askyesno(title=translationtext[28],message=translationtext[29])
-                if(an):
-                    typedata.set(3)
-                    data=bytes(t1.get(0.1,END),'utf-8')
-                    return 1
-                return 0
+        if((set(data)-set(TNV))!=set()):
+            an=messagebox.askyesno(title=translationtext[28],message=translationtext[29])
+            if(an):
+                typedata.set(3)
+                data=bytes(t1.get(0.1,END),'utf-8')
+                return 1
+            return 0
         return 1
     if(td==2):
-        for i in range(len(data)):
-            ok=0
-            for j in range(len(TANV)):
-                if(data[i]==TANV[j]):
-                    ok=1
-                    break
-            if(ok==0):
-                an=messagebox.askyesno(title=translationtext[28],message=translationtext[29])
-                if(an):
-                    typedata.set(3)
-                    data=bytes(t1.get(0.1,END),'utf-8')
-                    return 1
-                return 0
+        if((set(data)-set(TANV))!=set()):
+            an=messagebox.askyesno(title=translationtext[28],message=translationtext[29])
+            if(an):
+                typedata.set(3)
+                data=bytes(t1.get(0.1,END),'utf-8')
+                return 1
+            return 0
         return 1
     if(td==3):
         if(type(data)==str):
@@ -349,7 +339,6 @@ def CorrectData(td):
         for i in range(len(data)):
             ok=0
             b=bytesToInt(bytes(data[i],'Shift JIS'))
-#             print(bytes(data[i],'Shift JIS'),b)
             if((33088<b and b<40956) or (57408<b and b<60351)):
                 ok=1
             if(ok==0):
@@ -731,7 +720,7 @@ def QRCodeGenerator():
                 CommandProcessing()
         except IndexError:
             messagebox.showinfo(title=translationtext[28],message=translationtext[30])
-    if(not CorrectData(typedata.get())):
+    if(not CorrectData()):
         return
     FindMinSizeQRCode()
     DataEncoding()
